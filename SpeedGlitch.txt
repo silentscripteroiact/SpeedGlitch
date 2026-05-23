@@ -1,0 +1,235 @@
+--[=[
+ FULLY CONVERTED GUI + SPEED GLITCH
+ DRAGGABLE VERSION
+]=]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+local LMG2L = {}
+
+-- GUI
+LMG2L["ScreenGui_1"] = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+LMG2L["ScreenGui_1"].ResetOnSpawn = false
+
+LMG2L["Frame_2"] = Instance.new("Frame", LMG2L["ScreenGui_1"])
+LMG2L["Frame_2"].BackgroundColor3 = Color3.fromRGB(0,0,0)
+LMG2L["Frame_2"].BorderColor3 = Color3.fromRGB(255,168,0)
+LMG2L["Frame_2"].Size = UDim2.new(0,202,0,102)
+LMG2L["Frame_2"].Position = UDim2.new(0,224,0,42)
+
+Instance.new("UICorner", LMG2L["Frame_2"])
+
+-- DRAGGABLE GUI
+local frame = LMG2L["Frame_2"]
+
+local dragging = false
+local dragStart
+local startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	
+	frame.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+end
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+frame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
+		
+		if dragging then
+			update(input)
+		end
+	end
+end)
+
+-- TITLE
+LMG2L["Title"] = Instance.new("TextLabel", LMG2L["Frame_2"])
+LMG2L["Title"].BackgroundTransparency = 1
+LMG2L["Title"].Size = UDim2.new(0,188,0,42)
+LMG2L["Title"].Position = UDim2.new(0,6,0,0)
+LMG2L["Title"].Text = "Speed glitch v3"
+LMG2L["Title"].TextScaled = true
+LMG2L["Title"].TextColor3 = Color3.fromRGB(13,210,255)
+
+-- OFF BUTTON
+LMG2L["Off"] = Instance.new("TextButton", LMG2L["Frame_2"])
+LMG2L["Off"].Name = "Off"
+LMG2L["Off"].Size = UDim2.new(0,180,0,46)
+LMG2L["Off"].Position = UDim2.new(0,10,0,44)
+LMG2L["Off"].Text = "OFF"
+LMG2L["Off"].TextScaled = true
+LMG2L["Off"].BackgroundColor3 = Color3.fromRGB(44,44,44)
+LMG2L["Off"].BorderColor3 = Color3.fromRGB(3,238,255)
+LMG2L["Off"].TextColor3 = Color3.fromRGB(5,238,255)
+
+-- ON BUTTON
+LMG2L["OnButton"] = Instance.new("TextButton", LMG2L["Frame_2"])
+LMG2L["OnButton"].Name = "OnButton"
+LMG2L["OnButton"].Size = UDim2.new(0,180,0,46)
+LMG2L["OnButton"].Position = UDim2.new(0,10,0,44)
+LMG2L["OnButton"].Text = "ON"
+LMG2L["OnButton"].TextScaled = true
+LMG2L["OnButton"].BackgroundColor3 = Color3.fromRGB(44,44,44)
+LMG2L["OnButton"].BorderColor3 = Color3.fromRGB(3,238,255)
+LMG2L["OnButton"].TextColor3 = Color3.fromRGB(5,238,255)
+
+LMG2L["OnButton"].Visible = false
+
+-- ENABLE SYSTEM
+local enabled = false
+
+LMG2L["Off"].MouseButton1Click:Connect(function()
+	enabled = true
+	
+	LMG2L["Off"].Visible = false
+	LMG2L["OnButton"].Visible = true
+end)
+
+LMG2L["OnButton"].MouseButton1Click:Connect(function()
+	enabled = false
+	
+	LMG2L["OnButton"].Visible = false
+	LMG2L["Off"].Visible = true
+
+	local char = player.Character
+
+	if char then
+		local oldGhost = char:FindFirstChild("Skibidi_Ghost_Active")
+
+		if oldGhost then
+			oldGhost:Destroy()
+		end
+	end
+end)
+
+-- HIDE GUI WITH RIGHT CTRL
+UIS.InputBegan:Connect(function(input,gpe)
+	if gpe then return end
+
+	if input.KeyCode == Enum.KeyCode.RightControl then
+		LMG2L["ScreenGui_1"].Enabled = not LMG2L["ScreenGui_1"].Enabled
+	end
+end)
+
+-- GLITCH SCRIPT
+local currentOffset = CFrame.new(0,0,0)
+local activeGhost, activeWeld = nil,nil
+local cachedRoot, cachedTorso = nil,nil
+
+local function deployGhostGlitch()
+	if not enabled then return end
+
+	local char = player.Character
+	if not char then return end
+
+	cachedRoot = char:FindFirstChild("HumanoidRootPart")
+	cachedTorso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+
+	if not cachedRoot or not cachedTorso then
+		return
+	end
+
+	local rawCF = cachedRoot.CFrame:ToObjectSpace(cachedTorso.CFrame)
+
+	currentOffset =
+		CFrame.new(rawCF.Position * 20) * rawCF.Rotation
+
+	local oldGhost = char:FindFirstChild("Skibidi_Ghost_Active")
+
+	if oldGhost then
+		oldGhost:Destroy()
+	end
+
+	local newGhost = Instance.new("Part")
+	newGhost.Name = "Skibidi_Ghost_Active"
+	newGhost.Size = Vector3.new(1,1,1)
+	newGhost.CFrame = cachedTorso.CFrame
+	newGhost.Transparency = 1
+	newGhost.CanCollide = false
+	newGhost.Parent = char
+
+	activeWeld = Instance.new("Weld")
+	activeWeld.Part0 = cachedTorso
+	activeWeld.Part1 = newGhost
+	activeWeld.C0 = currentOffset
+	activeWeld.Parent = newGhost
+
+	activeGhost = newGhost
+end
+
+local function setupListeners(char)
+	if not char then return end
+
+	local humanoid = char:FindFirstChild("Humanoid")
+
+	if humanoid then
+		humanoid.Died:Connect(function()
+			activeGhost = nil
+			activeWeld = nil
+			cachedRoot = nil
+			cachedTorso = nil
+		end)
+	end
+
+	task.defer(deployGhostGlitch)
+
+	char.ChildAdded:Connect(function(child)
+		if not enabled then return end
+
+		if child:IsA("Tool") then
+			deployGhostGlitch()
+		end
+	end)
+
+	char.ChildRemoved:Connect(function(child)
+		if not enabled then return end
+
+		if child:IsA("Tool") then
+			deployGhostGlitch()
+		end
+	end)
+end
+
+if player.Character then
+	setupListeners(player.Character)
+end
+
+player.CharacterAdded:Connect(setupListeners)
+
+RunService.Heartbeat:Connect(function()
+	if not enabled then return end
+
+	if activeWeld then
+		activeWeld.C0 = currentOffset
+	else
+		if player.Character and
+		(not activeGhost or activeGhost.Parent ~= player.Character) then
+			deployGhostGlitch()
+		end
+	end
+end)
